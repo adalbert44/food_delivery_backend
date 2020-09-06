@@ -1,4 +1,4 @@
-module food_delivery_backend.go
+module food_delivery_backend
 
 go 1.13
 
