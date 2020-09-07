@@ -78,6 +78,23 @@ func main() {
 		c.JSON(200, types)
 	})
 
+	router.POST("/types", func(c * gin.Context) {
+		_, err := getDBConnection()
+		if err != nil {
+			c.String(404, fmt.Sprintf("%v", err))
+			return
+		}
+
+		t := Type{}
+		err = c.BindJSON(&t)
+		if err != nil {
+			c.String(404, fmt.Sprintf("%v", err))
+			return
+		}
+
+		fmt.Println(t)
+	})
+
 	err := router.Run(":" + port)
 	if err != nil {
 		log.Fatal(err)
