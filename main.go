@@ -26,6 +26,15 @@ type Restaurant struct {
 	PhotoURL string `json:"photoUrl"`
 }
 
+type Meal struct {
+	Id int `json:"id"`
+	Name string `json:"name"`
+	Description string `json:"description"`
+	PhotoURL string `json:"photoUrl"`
+	Price string `json:"price"`
+	TypeId int `json:"type"`
+}
+
 func getDBConnection() (*sqlx.DB, error){
 	connParams := strings.Join([]string{
 		"parseTime=true",
@@ -48,6 +57,15 @@ func getDBConnection() (*sqlx.DB, error){
 	)
 
 	return sqlx.Open("mysql", defaultConfigString)
+}
+
+type MealRequest struct {
+	Id int `json:"id"`
+	Name string `json:"name"`
+	Description string `json:"description"`
+	PhotoURL string `json:"photoUrl"`
+	Price string `json:"price"`
+	Type Type `json:"type"`
 }
 
 func main() {
@@ -152,7 +170,24 @@ func main() {
 			return
 		}
 
-		_, err = conn.Exec("DELETE FROM FoodDelivery.type WHERE id=?", deleteMealTypeId)
+		tx, err := conn.Begin()
+		if err != nil {
+			c.String(404, fmt.Sprintf("%v", err))
+			return
+		}
+
+		_, err = tx.Exec("DELETE FROM FoodDelivery.type WHERE id=?", deleteMealTypeId)
+		if err != nil {
+			c.String(404, fmt.Sprintf("%v", err))
+			return
+		}
+		_, err = tx.Exec("DELETE FROM FoodDelivery.meals WHERE typeid=?", deleteMealTypeId)
+		if err != nil {
+			c.String(404, fmt.Sprintf("%v", err))
+			return
+		}
+
+		err = tx.Commit()
 		if err != nil {
 			c.String(404, fmt.Sprintf("%v", err))
 			return
@@ -268,6 +303,202 @@ func main() {
 		}
 
 		_, err = conn.Exec("DELETE FROM FoodDelivery.restaurant WHERE id=?", deleteRestaurantId)
+		if err != nil {
+			c.String(404, fmt.Sprintf("%v", err))
+			return
+		}
+
+		c.String(200, "OK")
+	})
+
+	router.GET("/meals", func(c *gin.Context) {
+		conn, err := getDBConnection()
+		if err != nil {
+			c.String(404, fmt.Sprintf("%v", err))
+			return
+		}
+
+		tx, err := conn.Begin()
+		if err != nil {
+			c.String(404, fmt.Sprintf("%v", err))
+			return
+		}
+
+		rows, err := tx.Query("SELECT * FROM FoodDelivery.meals")
+		if err != nil {
+			c.String(404, fmt.Sprintf("%v", err))
+			return
+		}
+
+		meals := make([]MealRequest, 0)
+		for rows.Next() {
+			curMeal := Meal {}
+			err := rows.Scan(&curMeal.Id, &curMeal.Name, &curMeal.Description, &curMeal.PhotoURL, &curMeal.Price, &curMeal.TypeId)
+			if err != nil {
+				c.String(404, fmt.Sprintf("%v", err))
+				return
+			}
+
+			typeRows, err := tx.Query("SELECT * FROM FoodDelivery.type WHERE id = ?", curMeal.TypeId)
+			if err != nil {
+				c.String(404, fmt.Sprintf("%v", err))
+				return
+			}
+			if !typeRows.Next() {
+				c.String(404, fmt.Sprintf("Failed to find meal type with id %d", curMeal.TypeId))
+				return
+			}
+			curType := Type{}
+			err = typeRows.Scan(&curType.Id, &curType.Name)
+			if err != nil {
+				c.String(404, fmt.Sprintf("%v", err))
+				return
+			}
+
+			curMealRequest := MealRequest{
+				Id:curMeal.Id,
+				Name :curMeal.Name,
+				Description:curMeal.Description,
+				PhotoURL: curMeal.PhotoURL,
+				Price:curMeal.Price,
+				Type: curType,
+
+			}
+			meals = append(meals, curMealRequest)
+		}
+
+		err = tx.Commit()
+		if err != nil {
+			c.String(404, fmt.Sprintf("%v", err))
+			return
+		}
+
+		c.JSON(200, meals)
+	})
+
+	router.POST("/meals", func(c * gin.Context) {
+		conn, err := getDBConnection()
+		if err != nil {
+			c.String(404, fmt.Sprintf("%v", err))
+			return
+		}
+
+		type Body struct {
+			NewMeal MealRequest `json:"newMeal"`
+		}
+		b := Body{}
+		err = c.BindJSON(&b)
+		if err != nil {
+			c.String(404, fmt.Sprintf("%v", err))
+			return
+		}
+
+		tx, err := conn.Begin()
+		if err != nil {
+			c.String(404, fmt.Sprintf("%v", err))
+			return
+		}
+
+		rows, err := tx.Query("SELECT * FROM FoodDelivery.type WHERE id = ?", b.NewMeal.Type.Id)
+		if err != nil {
+			c.String(404, fmt.Sprintf("%v", err))
+			return
+		}
+		if !rows.Next() {
+			c.String(404, fmt.Sprintf("meal type with id %d doesn't exist", b.NewMeal.Type.Id))
+			return
+		}
+
+		_, err = tx.Exec("INSERT INTO FoodDelivery.meals(name, description, photourl, price, typeid) VALUES (?)",
+			b.NewMeal.Name,
+			b.NewMeal.Description,
+			b.NewMeal.PhotoURL,
+			b.NewMeal.Price,
+			b.NewMeal.Type.Id,
+		)
+		if err != nil {
+			c.String(404, fmt.Sprintf("%v", err))
+			return
+		}
+
+		err = tx.Commit()
+		if err != nil {
+			c.String(404, fmt.Sprintf("%v", err))
+			return
+		}
+
+		c.String(200, "OK")
+	})
+
+	router.PUT("/meals", func(c * gin.Context) {
+		conn, err := getDBConnection()
+		if err != nil {
+			c.String(404, fmt.Sprintf("%v", err))
+			return
+		}
+
+		type Body struct {
+			EditMeal MealRequest `json:"editMeal"`
+		}
+		b := Body{}
+		err = c.BindJSON(&b)
+		if err != nil {
+			c.String(404, fmt.Sprintf("%v", err))
+			return
+		}
+
+		tx, err := conn.Begin()
+		if err != nil {
+			c.String(404, fmt.Sprintf("%v", err))
+			return
+		}
+
+		rows, err := tx.Query("SELECT * FROM FoodDelivery.type WHERE id = ?", b.EditMeal.Type.Id)
+		if err != nil {
+			c.String(404, fmt.Sprintf("%v", err))
+			return
+		}
+		if !rows.Next() {
+			c.String(404, fmt.Sprintf("meal type with id %d doesn't exist", b.EditMeal.Type.Id))
+			return
+		}
+
+		_, err = tx.Exec("UPDATE FoodDelivery.meals SET name=?, description=?, photourl=?, price=?, typrid=? WHERE id=?",
+			b.EditMeal.Name,
+			b.EditMeal.Description,
+			b.EditMeal.PhotoURL,
+			b.EditMeal.Price,
+			b.EditMeal.Type.Id,
+			b.EditMeal.Id,
+		)
+		if err != nil {
+			c.String(404, fmt.Sprintf("%v", err))
+			return
+		}
+
+		err = tx.Commit()
+		if err != nil {
+			c.String(404, fmt.Sprintf("%v", err))
+			return
+		}
+
+		c.String(200, "OK")
+	})
+
+	router.DELETE("/meals", func(c * gin.Context) {
+		conn, err := getDBConnection()
+		if err != nil {
+			c.String(404, fmt.Sprintf("%v", err))
+			return
+		}
+
+		deleteMealId, err := strconv.Atoi(c.Query("deleteMealId"))
+		if err != nil {
+			c.String(404, fmt.Sprintf("%v", err))
+			return
+		}
+
+		_, err = conn.Exec("DELETE FROM FoodDelivery.meals WHERE id=?", deleteMealId)
 		if err != nil {
 			c.String(404, fmt.Sprintf("%v", err))
 			return
