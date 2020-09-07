@@ -79,7 +79,7 @@ func main() {
 	})
 
 	router.POST("/type", func(c * gin.Context) {
-		_, err := getDBConnection()
+		conn, err := getDBConnection()
 		if err != nil {
 			c.String(404, fmt.Sprintf("%v", err))
 			return
@@ -92,7 +92,13 @@ func main() {
 			return
 		}
 
-		fmt.Println(t)
+		_, err = conn.Exec("INSERT INTO FoodDelivery.type(name) VALUES (?)", t.Name)
+		if err != nil {
+			c.String(404, fmt.Sprintf("%v", err))
+			return
+		}
+
+		c.String(200, "OK")
 	})
 
 	err := router.Run(":" + port)
