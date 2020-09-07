@@ -14,8 +14,16 @@ import (
 )
 
 type Type struct {
-	Id int64 `json:"id"`
+	Id int `json:"id"`
 	Name string `json:"name"`
+}
+
+type Restaurant struct {
+	Id int `json:"id"`
+	Name string `json:"name"`
+	Description string `json:"description"`
+	Location string `json:"location"`
+	PhotoURL string `json:"photoUrl"`
 }
 
 func getDBConnection() (*sqlx.DB, error){
@@ -145,6 +153,121 @@ func main() {
 		}
 
 		_, err = conn.Exec("DELETE FROM FoodDelivery.type WHERE id=?", deleteMealTypeId)
+		if err != nil {
+			c.String(404, fmt.Sprintf("%v", err))
+			return
+		}
+
+		c.String(200, "OK")
+	})
+
+	router.GET("/restaurants", func(c *gin.Context) {
+		conn, err := getDBConnection()
+		if err != nil {
+			c.String(404, fmt.Sprintf("%v", err))
+			return
+		}
+
+		rows, err := conn.Query("SELECT * FROM FoodDelivery.restaurants")
+		if err != nil {
+			c.String(404, fmt.Sprintf("%v", err))
+			return
+		}
+
+		restaurants := make([]Restaurant, 0)
+		for rows.Next() {
+			curRestaurant := Restaurant{}
+			err := rows.Scan(&curRestaurant.Id,
+				&curRestaurant.Name,
+				&curRestaurant.Description,
+				&curRestaurant.Location,
+				&curRestaurant.PhotoURL)
+			if err != nil {
+				c.String(404, fmt.Sprintf("%v", err))
+				return
+			}
+			restaurants = append(restaurants, curRestaurant)
+		}
+		c.JSON(200, restaurants)
+	})
+
+	router.POST("/restaurants", func(c * gin.Context) {
+		conn, err := getDBConnection()
+		if err != nil {
+			c.String(404, fmt.Sprintf("%v", err))
+			return
+		}
+
+		type Body struct {
+			NewRestaurant Restaurant `json:"newRestaurant"`
+		}
+		b := Body{}
+		err = c.BindJSON(&b)
+		if err != nil {
+			c.String(404, fmt.Sprintf("%v", err))
+			return
+		}
+
+		_, err = conn.Exec("INSERT INTO FoodDelivery.restaurants(name, description, location, photourl) VALUES (?, ?, ?, ?)",
+			b.NewRestaurant.Name,
+			b.NewRestaurant.Description,
+			b.NewRestaurant.Location,
+			b.NewRestaurant.PhotoURL,
+		)
+		if err != nil {
+			c.String(404, fmt.Sprintf("%v", err))
+			return
+		}
+
+		c.String(200, "OK")
+	})
+
+	router.PUT("/restaurants", func(c * gin.Context) {
+		conn, err := getDBConnection()
+		if err != nil {
+			c.String(404, fmt.Sprintf("%v", err))
+			return
+		}
+
+		type Body struct {
+			EditRestaurant Restaurant `json:"editRestaurant"`
+		}
+		b := Body{}
+		err = c.BindJSON(&b)
+		if err != nil {
+			c.String(404, fmt.Sprintf("%v", err))
+			return
+		}
+
+		_, err = conn.Exec("UPDATE FoodDelivery.restaurants SET name=?, description=?, location=?, photourl=? WHERE id=?",
+			b.EditRestaurant.Name,
+			b.EditRestaurant.Description,
+			b.EditRestaurant.Location,
+			b.EditRestaurant.PhotoURL,
+			b.EditRestaurant.Id,
+		)
+		if err != nil {
+			c.String(404, fmt.Sprintf("%v", err))
+			return
+		}
+
+		c.String(200, "OK")
+	})
+
+	router.DELETE("/restaurants", func(c * gin.Context) {
+		conn, err := getDBConnection()
+		if err != nil {
+			c.String(404, fmt.Sprintf("%v", err))
+			return
+		}
+
+		deleteRestaurantId, err := strconv.Atoi(c.Query("deleteRestaurantId"))
+		if err != nil {
+			c.String(404, fmt.Sprintf("%v", err))
+			return
+		}
+
+		_, err = conn.Exec("DELETE FROM FoodDelivery.restaurant WHERE id=?", deleteRestaurantId)
 		if err != nil {
 			c.String(404, fmt.Sprintf("%v", err))
 			return
