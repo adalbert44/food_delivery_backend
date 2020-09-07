@@ -52,7 +52,7 @@ func main() {
 	router.Use(gin.Logger())
 	router.Use(cors.Default())
 
-	router.GET("/type", func(c *gin.Context) {
+	router.GET("/types", func(c *gin.Context) {
 		conn, err := getDBConnection()
 		if err != nil {
 			c.String(404, fmt.Sprintf("%v", err))
@@ -78,7 +78,7 @@ func main() {
 		c.JSON(200, types)
 	})
 
-	router.POST("/type", func(c * gin.Context) {
+	router.POST("/types", func(c * gin.Context) {
 		conn, err := getDBConnection()
 		if err != nil {
 			c.String(404, fmt.Sprintf("%v", err))
@@ -104,7 +104,7 @@ func main() {
 		c.String(200, "OK")
 	})
 
-	router.PUT("/type", func(c * gin.Context) {
+	router.PUT("/types", func(c * gin.Context) {
 		conn, err := getDBConnection()
 		if err != nil {
 			c.String(404, fmt.Sprintf("%v", err))
@@ -130,7 +130,7 @@ func main() {
 		c.String(200, "OK")
 	})
 
-	router.DELETE("/type", func(c * gin.Context) {
+	router.DELETE("/types", func(c * gin.Context) {
 		conn, err := getDBConnection()
 		if err != nil {
 			c.String(404, fmt.Sprintf("%v", err))
