@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/gin-contrib/cors"
@@ -137,17 +138,13 @@ func main() {
 			return
 		}
 
-		type Body struct {
-			DeleteMealTypeId int `json:"deleteMealTypeId"`
-		}
-		b := Body{}
-		err = c.BindJSON(&b)
+		deleteMealTypeId, err := strconv.Atoi(c.Query("deleteMealTypeId"))
 		if err != nil {
 			c.String(404, fmt.Sprintf("%v", err))
 			return
 		}
 
-		_, err = conn.Exec("DELETE FROM FoodDelivery.type WHERE id=?", b.DeleteMealTypeId)
+		_, err = conn.Exec("DELETE FROM FoodDelivery.type WHERE id=?", deleteMealTypeId)
 		if err != nil {
 			c.String(404, fmt.Sprintf("%v", err))
 			return
