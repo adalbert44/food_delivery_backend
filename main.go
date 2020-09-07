@@ -121,7 +121,33 @@ func main() {
 			return
 		}
 
-		_, err = conn.Exec("UPDATE type SET name=? WHERE id=? ", b.EditMealType.Name, b.EditMealType.Id)
+		_, err = conn.Exec("UPDATE FoodDelivery.type SET name=? WHERE id=?", b.EditMealType.Name, b.EditMealType.Id)
+		if err != nil {
+			c.String(404, fmt.Sprintf("%v", err))
+			return
+		}
+
+		c.String(200, "OK")
+	})
+
+	router.DELETE("/type", func(c * gin.Context) {
+		conn, err := getDBConnection()
+		if err != nil {
+			c.String(404, fmt.Sprintf("%v", err))
+			return
+		}
+
+		type Body struct {
+			DeleteMealTypeId int `json:"deleteMealTypeId"`
+		}
+		b := Body{}
+		err = c.BindJSON(&b)
+		if err != nil {
+			c.String(404, fmt.Sprintf("%v", err))
+			return
+		}
+
+		_, err = conn.Exec("DELETE FROM FoodDelivery.type WHERE id=?", b.DeleteMealTypeId)
 		if err != nil {
 			c.String(404, fmt.Sprintf("%v", err))
 			return
