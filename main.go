@@ -78,7 +78,7 @@ func main() {
 		c.JSON(200, types)
 	})
 
-	router.POST("/types", func(c * gin.Context) {
+	router.POST("/type", func(c * gin.Context) {
 		_, err := getDBConnection()
 		if err != nil {
 			c.String(404, fmt.Sprintf("%v", err))
