@@ -131,21 +131,12 @@ func main() {
 	})
 
 	router.DELETE("/types", func(c * gin.Context) {
-		_, err := getDBConnection()
+		conn, err := getDBConnection()
 		if err != nil {
 			c.String(404, fmt.Sprintf("%v", err))
 			return
 		}
 
-		input := make([]byte, 1024)
-		num, err := c.Request.Body.Read(input)
-		if err != nil {
-			c.String(404, fmt.Sprintf("%v", err))
-			return
-		}
-		c.String(200, string(input[:num]))
-
-		/*
 		type Body struct {
 			DeleteMealTypeId int `json:"deleteMealTypeId"`
 		}
@@ -163,7 +154,6 @@ func main() {
 		}
 
 		c.String(200, "OK")
-		*/
 	})
 
 	err := router.Run(":" + port)
