@@ -52,7 +52,7 @@ func main() {
 	router.Use(gin.Logger())
 	router.Use(cors.Default())
 
-	router.GET("/types", func(c *gin.Context) {
+	router.GET("/type", func(c *gin.Context) {
 		conn, err := getDBConnection()
 		if err != nil {
 			c.String(404, fmt.Sprintf("%v", err))
@@ -80,6 +80,10 @@ func main() {
 
 	router.POST("/type", func(c * gin.Context) {
 		conn, err := getDBConnection()
+		buf := make([]byte, 1024)
+		num, _ := c.Request.Body.Read(buf)
+		reqBody := string(buf[0:num])
+		c.String(404, fmt.Sprintf("%v",reqBody))
 		if err != nil {
 			c.String(404, fmt.Sprintf("%v", err))
 			return
