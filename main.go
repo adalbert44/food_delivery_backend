@@ -52,7 +52,7 @@ func main() {
 	router.Use(gin.Logger())
 	router.Use(cors.Default())
 
-	router.GET("/type", func(c *gin.Context) {
+	router.GET("/types", func(c *gin.Context) {
 		conn, err := getDBConnection()
 		if err != nil {
 			c.String(404, fmt.Sprintf("%v", err))
