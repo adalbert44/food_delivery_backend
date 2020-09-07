@@ -80,11 +80,22 @@ func main() {
 
 	router.POST("/type", func(c * gin.Context) {
 		conn, err := getDBConnection()
-		buf := make([]byte, 1024)
-		num, _ := c.Request.Body.Read(buf)
-		reqBody := string(buf[0:num])
+		if err != nil {
+			c.String(404, fmt.Sprintf("%v", err))
+			return
+		}
 
-		_, err = conn.Exec("INSERT INTO FoodDelivery.type(name) VALUES (?)", reqBody)
+		type Body struct {
+			NewMealType Type `json:"newMealType"`
+		}
+		b := Body{}
+		err = c.BindJSON(&b)
+		if err != nil {
+			c.String(404, fmt.Sprintf("%v", err))
+			return
+		}
+
+		_, err = conn.Exec("INSERT INTO FoodDelivery.type(name) VALUES (?)", b.NewMealType.Name)
 		if err != nil {
 			c.String(404, fmt.Sprintf("%v", err))
 			return
