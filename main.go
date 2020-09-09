@@ -324,15 +324,13 @@ func main() {
 			return
 		}
 
-		defer tx.Commit()
-
 		rows, err := tx.Query("SELECT * FROM FoodDelivery.meals")
 		if err != nil {
 			c.String(404, fmt.Sprintf("%v", err))
 			return
 		}
 
-		meals := make([]MealRequest, 0)
+		meals := make([]Meal, 0)
 		for rows.Next() {
 			curMeal := Meal {}
 			err := rows.Scan(&curMeal.Id, &curMeal.Name, &curMeal.Description, &curMeal.PhotoURL, &curMeal.Price, &curMeal.TypeId)
@@ -341,7 +339,12 @@ func main() {
 				return
 			}
 
-			typeRows, err := tx.Query("SELECT * FROM FoodDelivery.type WHERE id = ?", curMeal.TypeId)
+			meals = append(meals, curMeal)
+		}
+
+		mealRequests := make([]MealRequest, 0)
+		for _, curMeal :=  range meals {
+			typeRows, err := tx.Query("SELECT * FROM FoodDelivery.type WHERE id = ? LIMIT 1", curMeal.TypeId)
 			if err != nil {
 				c.String(404, fmt.Sprintf("%v", err))
 				return
@@ -366,7 +369,14 @@ func main() {
 				Type: curType,
 
 			}
-			meals = append(meals, curMealRequest)
+
+			mealRequests = append(mealRequests, curMealRequest)
+		}
+
+		err = tx.Commit()
+		if err != nil {
+			c.String(404, fmt.Sprintf("%v", err))
+			return
 		}
 
 		c.JSON(200, meals)
