@@ -324,6 +324,8 @@ func main() {
 			return
 		}
 
+		defer tx.Commit()
+
 		rows, err := tx.Query("SELECT * FROM FoodDelivery.meals")
 		if err != nil {
 			c.String(404, fmt.Sprintf("%v", err))
@@ -365,12 +367,6 @@ func main() {
 
 			}
 			meals = append(meals, curMealRequest)
-		}
-
-		err = tx.Commit()
-		if err != nil {
-			c.String(404, fmt.Sprintf("%v", err))
-			return
 		}
 
 		c.JSON(200, meals)
