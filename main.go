@@ -385,7 +385,7 @@ func main() {
 			return
 		}
 
-		_, err = conn.Exec("INSERT INTO FoodDelivery.meals(name, description, photourl, price, typeid) VALUES (?)",
+		_, err = conn.Exec("INSERT INTO FoodDelivery.meals(name, description, photourl, price, typeid) VALUES (?, ?, ?, ?, ?)",
 			b.NewMeal.Name,
 			b.NewMeal.Description,
 			b.NewMeal.PhotoURL,
