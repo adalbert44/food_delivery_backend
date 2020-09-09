@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"food_delivery_backend/models"
 	"log"
 	"os"
 	"strconv"
@@ -12,28 +13,6 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 )
-
-type Type struct {
-	Id int `json:"id"`
-	Name string `json:"name"`
-}
-
-type Restaurant struct {
-	Id int `json:"id"`
-	Name string `json:"name"`
-	Description string `json:"description"`
-	Location string `json:"location"`
-	PhotoURL string `json:"photoUrl"`
-}
-
-type Meal struct {
-	Id int `json:"id"`
-	Name string `json:"name"`
-	Description string `json:"description"`
-	PhotoURL string `json:"photoUrl"`
-	Price int `json:"price"`
-	TypeId int `json:"type"`
-}
 
 func getDBConnection() (*sqlx.DB, error){
 	connParams := strings.Join([]string{
@@ -57,15 +36,6 @@ func getDBConnection() (*sqlx.DB, error){
 	)
 
 	return sqlx.Open("mysql", defaultConfigString)
-}
-
-type MealRequest struct {
-	Id int `json:"id"`
-	Name string `json:"name"`
-	Description string `json:"description"`
-	PhotoURL string `json:"photoUrl"`
-	Price int `json:"price"`
-	Type Type `json:"type"`
 }
 
 func main() {
@@ -92,9 +62,9 @@ func main() {
 			return
 		}
 
-		types := make([]Type, 0)
+		types := make([]models.Type, 0)
 		for rows.Next() {
-			curType := Type {}
+			curType := models.Type {}
 			err := rows.Scan(&curType.Id, &curType.Name)
 			if err != nil {
 				c.String(404, fmt.Sprintf("%v", err))
@@ -113,7 +83,7 @@ func main() {
 		}
 
 		type Body struct {
-			NewMealType Type `json:"newMealType"`
+			NewMealType models.Type `json:"newMealType"`
 		}
 		b := Body{}
 		err = c.BindJSON(&b)
@@ -139,7 +109,7 @@ func main() {
 		}
 
 		type Body struct {
-			EditMealType Type `json:"editMealType"`
+			EditMealType models.Type `json:"editMealType"`
 		}
 		b := Body{}
 		err = c.BindJSON(&b)
@@ -197,9 +167,9 @@ func main() {
 			return
 		}
 
-		restaurants := make([]Restaurant, 0)
+		restaurants := make([]models.Restaurant, 0)
 		for rows.Next() {
-			curRestaurant := Restaurant{}
+			curRestaurant := models.Restaurant{}
 			err := rows.Scan(&curRestaurant.Id,
 				&curRestaurant.Name,
 				&curRestaurant.Description,
@@ -222,7 +192,7 @@ func main() {
 		}
 
 		type Body struct {
-			NewRestaurant Restaurant `json:"newRestaurant"`
+			NewRestaurant models.Restaurant `json:"newRestaurant"`
 		}
 		b := Body{}
 		err = c.BindJSON(&b)
@@ -253,7 +223,7 @@ func main() {
 		}
 
 		type Body struct {
-			EditRestaurant Restaurant `json:"editRestaurant"`
+			EditRestaurant models.Restaurant `json:"editRestaurant"`
 		}
 		b := Body{}
 		err = c.BindJSON(&b)
@@ -312,9 +282,9 @@ func main() {
 			return
 		}
 
-		meals := make([]Meal, 0)
+		meals := make([]models.Meal, 0)
 		for rows.Next() {
-			curMeal := Meal {}
+			curMeal := models.Meal {}
 			err := rows.Scan(&curMeal.Id, &curMeal.Name, &curMeal.Description, &curMeal.PhotoURL, &curMeal.Price, &curMeal.TypeId)
 			if err != nil {
 				c.String(404, fmt.Sprintf("%v", err))
@@ -324,7 +294,7 @@ func main() {
 			meals = append(meals, curMeal)
 		}
 
-		mealRequests := make([]MealRequest, 0)
+		mealRequests := make([]models.MealRequest, 0)
 		for _, curMeal :=  range meals {
 			typeRows, err := conn.Query("SELECT * FROM FoodDelivery.type WHERE id = ? LIMIT 1", curMeal.TypeId)
 			if err != nil {
@@ -335,14 +305,14 @@ func main() {
 				c.String(404, fmt.Sprintf("Failed to find meal type with id %d", curMeal.TypeId))
 				return
 			}
-			curType := Type{}
+			curType := models.Type{}
 			err = typeRows.Scan(&curType.Id, &curType.Name)
 			if err != nil {
 				c.String(404, fmt.Sprintf("%v", err))
 				return
 			}
 
-			curMealRequest := MealRequest{
+			curMealRequest := models.MealRequest{
 				Id:curMeal.Id,
 				Name :curMeal.Name,
 				Description:curMeal.Description,
@@ -366,7 +336,7 @@ func main() {
 		}
 
 		type Body struct {
-			NewMeal MealRequest `json:"newMeal"`
+			NewMeal models.MealRequest `json:"newMeal"`
 		}
 		b := Body{}
 		err = c.BindJSON(&b)
@@ -408,7 +378,7 @@ func main() {
 		}
 
 		type Body struct {
-			EditMeal MealRequest `json:"editMeal"`
+			EditMeal models.MealRequest `json:"editMeal"`
 		}
 		b := Body{}
 		err = c.BindJSON(&b)
