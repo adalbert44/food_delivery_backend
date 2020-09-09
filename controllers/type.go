@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"food_delivery_backend/models"
 	"github.com/gin-gonic/gin"
+	"strconv"
 )
 
 func GetType(c *gin.Context) {
@@ -91,17 +92,18 @@ func DeleteType(c *gin.Context) {
 		return
 	}
 
-	type Body struct {
-		EditMealType models.Type `json:"editMealType"`
-	}
-	b := Body{}
-	err = c.BindJSON(&b)
+	deleteMealTypeId, err := strconv.Atoi(c.Query("deleteMealTypeId"))
 	if err != nil {
 		c.String(404, fmt.Sprintf("%v", err))
 		return
 	}
 
-	_, err = conn.Exec("UPDATE FoodDelivery.type SET name=? WHERE id=?", b.EditMealType.Name, b.EditMealType.Id)
+	_, err = conn.Exec("DELETE FROM FoodDelivery.type WHERE id=?", deleteMealTypeId)
+	if err != nil {
+		c.String(404, fmt.Sprintf("%v", err))
+		return
+	}
+	_, err = conn.Exec("DELETE FROM FoodDelivery.meals WHERE typeid=?", deleteMealTypeId)
 	if err != nil {
 		c.String(404, fmt.Sprintf("%v", err))
 		return
