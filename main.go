@@ -375,11 +375,11 @@ func main() {
 
 		err = tx.Commit()
 		if err != nil {
-			c.String(404, fmt.Sprintf("%v", err))
+			c.String(404, fmt.Sprintf("AAAAAAA%v", err))
 			return
 		}
 
-		c.JSON(200, meals)
+		c.JSON(200, mealRequests)
 	})
 
 	router.POST("/meals", func(c * gin.Context) {
