@@ -427,7 +427,7 @@ func main() {
 			return
 		}
 
-		_, err = conn.Exec("UPDATE FoodDelivery.meals SET name=?, description=?, photourl=?, price=?, typrid=? WHERE id=?",
+		_, err = conn.Exec("UPDATE FoodDelivery.meals SET name=?, description=?, photourl=?, price=?, typeid=? WHERE id=?",
 			b.EditMeal.Name,
 			b.EditMeal.Description,
 			b.EditMeal.PhotoURL,
