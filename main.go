@@ -187,11 +187,7 @@ func main() {
 			return
 		}
 
-		err = tx.Commit()
-		if err != nil {
-			c.String(404, fmt.Sprintf("%v", err))
-			return
-		}
+		tx.Commit()
 
 		c.String(200, "OK")
 	})
@@ -373,11 +369,7 @@ func main() {
 			mealRequests = append(mealRequests, curMealRequest)
 		}
 
-		err = tx.Commit()
-		if err != nil {
-			c.String(404, fmt.Sprintf("AAAAAAA%v", err))
-			return
-		}
+		tx.Commit()
 
 		c.JSON(200, mealRequests)
 	})
@@ -427,11 +419,7 @@ func main() {
 			return
 		}
 
-		err = tx.Commit()
-		if err != nil {
-			c.String(404, fmt.Sprintf("%v", err))
-			return
-		}
+		tx.Commit()
 
 		c.String(200, "OK")
 	})
@@ -482,11 +470,7 @@ func main() {
 			return
 		}
 
-		err = tx.Commit()
-		if err != nil {
-			c.String(404, fmt.Sprintf("%v", err))
-			return
-		}
+		tx.Commit()
 
 		c.String(200, "OK")
 	})
