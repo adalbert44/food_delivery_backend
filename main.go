@@ -31,7 +31,7 @@ type Meal struct {
 	Name string `json:"name"`
 	Description string `json:"description"`
 	PhotoURL string `json:"photoUrl"`
-	Price string `json:"price"`
+	Price int `json:"price"`
 	TypeId int `json:"type"`
 }
 
@@ -64,7 +64,7 @@ type MealRequest struct {
 	Name string `json:"name"`
 	Description string `json:"description"`
 	PhotoURL string `json:"photoUrl"`
-	Price string `json:"price"`
+	Price int `json:"price"`
 	Type Type `json:"type"`
 }
 
