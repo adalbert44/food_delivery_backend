@@ -302,7 +302,7 @@ func main() {
 			return
 		}
 
-		_, err = conn.Exec("DELETE FROM FoodDelivery.restaurant WHERE id=?", deleteRestaurantId)
+		_, err = conn.Exec("DELETE FROM FoodDelivery.restaurants WHERE id=?", deleteRestaurantId)
 		if err != nil {
 			c.String(404, fmt.Sprintf("%v", err))
 			return
