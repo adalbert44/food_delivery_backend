@@ -170,24 +170,16 @@ func main() {
 			return
 		}
 
-		tx, err := conn.Begin()
+		_, err = conn.Exec("DELETE FROM FoodDelivery.type WHERE id=?", deleteMealTypeId)
 		if err != nil {
 			c.String(404, fmt.Sprintf("%v", err))
 			return
 		}
-
-		_, err = tx.Exec("DELETE FROM FoodDelivery.type WHERE id=?", deleteMealTypeId)
+		_, err = conn.Exec("DELETE FROM FoodDelivery.meals WHERE typeid=?", deleteMealTypeId)
 		if err != nil {
 			c.String(404, fmt.Sprintf("%v", err))
 			return
 		}
-		_, err = tx.Exec("DELETE FROM FoodDelivery.meals WHERE typeid=?", deleteMealTypeId)
-		if err != nil {
-			c.String(404, fmt.Sprintf("%v", err))
-			return
-		}
-
-		tx.Commit()
 
 		c.String(200, "OK")
 	})
@@ -314,13 +306,7 @@ func main() {
 			return
 		}
 
-		tx, err := conn.Begin()
-		if err != nil {
-			c.String(404, fmt.Sprintf("%v", err))
-			return
-		}
-
-		rows, err := tx.Query("SELECT * FROM FoodDelivery.meals")
+		rows, err := conn.Query("SELECT * FROM FoodDelivery.meals")
 		if err != nil {
 			c.String(404, fmt.Sprintf("%v", err))
 			return
@@ -340,7 +326,7 @@ func main() {
 
 		mealRequests := make([]MealRequest, 0)
 		for _, curMeal :=  range meals {
-			typeRows, err := tx.Query("SELECT * FROM FoodDelivery.type WHERE id = ? LIMIT 1", curMeal.TypeId)
+			typeRows, err := conn.Query("SELECT * FROM FoodDelivery.type WHERE id = ? LIMIT 1", curMeal.TypeId)
 			if err != nil {
 				c.String(404, fmt.Sprintf("%v", err))
 				return
@@ -369,8 +355,6 @@ func main() {
 			mealRequests = append(mealRequests, curMealRequest)
 		}
 
-		tx.Commit()
-
 		c.JSON(200, mealRequests)
 	})
 
@@ -391,13 +375,7 @@ func main() {
 			return
 		}
 
-		tx, err := conn.Begin()
-		if err != nil {
-			c.String(404, fmt.Sprintf("%v", err))
-			return
-		}
-
-		rows, err := tx.Query("SELECT * FROM FoodDelivery.type WHERE id = ?", b.NewMeal.Type.Id)
+		rows, err := conn.Query("SELECT * FROM FoodDelivery.type WHERE id = ?", b.NewMeal.Type.Id)
 		if err != nil {
 			c.String(404, fmt.Sprintf("%v", err))
 			return
@@ -407,7 +385,7 @@ func main() {
 			return
 		}
 
-		_, err = tx.Exec("INSERT INTO FoodDelivery.meals(name, description, photourl, price, typeid) VALUES (?)",
+		_, err = conn.Exec("INSERT INTO FoodDelivery.meals(name, description, photourl, price, typeid) VALUES (?)",
 			b.NewMeal.Name,
 			b.NewMeal.Description,
 			b.NewMeal.PhotoURL,
@@ -418,8 +396,6 @@ func main() {
 			c.String(404, fmt.Sprintf("%v", err))
 			return
 		}
-
-		tx.Commit()
 
 		c.String(200, "OK")
 	})
@@ -441,13 +417,7 @@ func main() {
 			return
 		}
 
-		tx, err := conn.Begin()
-		if err != nil {
-			c.String(404, fmt.Sprintf("%v", err))
-			return
-		}
-
-		rows, err := tx.Query("SELECT * FROM FoodDelivery.type WHERE id = ?", b.EditMeal.Type.Id)
+		rows, err := conn.Query("SELECT * FROM FoodDelivery.type WHERE id = ?", b.EditMeal.Type.Id)
 		if err != nil {
 			c.String(404, fmt.Sprintf("%v", err))
 			return
@@ -457,7 +427,7 @@ func main() {
 			return
 		}
 
-		_, err = tx.Exec("UPDATE FoodDelivery.meals SET name=?, description=?, photourl=?, price=?, typrid=? WHERE id=?",
+		_, err = conn.Exec("UPDATE FoodDelivery.meals SET name=?, description=?, photourl=?, price=?, typrid=? WHERE id=?",
 			b.EditMeal.Name,
 			b.EditMeal.Description,
 			b.EditMeal.PhotoURL,
@@ -469,8 +439,6 @@ func main() {
 			c.String(404, fmt.Sprintf("%v", err))
 			return
 		}
-
-		tx.Commit()
 
 		c.String(200, "OK")
 	})
