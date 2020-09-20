@@ -14,7 +14,7 @@ func GetType(c *gin.Context) {
 		return
 	}
 
-	rows, err := conn.Query("SELECT * FROM FoodDelivery.type")
+	rows, err := conn.Query("SELECT * FROM FoodDelivery.type ORDER BY id")
 	if err != nil {
 		c.String(404, fmt.Sprintf("%v", err))
 		return

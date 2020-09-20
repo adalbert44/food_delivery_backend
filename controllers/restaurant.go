@@ -14,7 +14,7 @@ func GetRestaurant(c *gin.Context) {
 		return
 	}
 
-	rows, err := conn.Query("SELECT * FROM FoodDelivery.restaurants")
+	rows, err := conn.Query("SELECT * FROM FoodDelivery.restaurants ORDER BY id")
 	if err != nil {
 		c.String(404, fmt.Sprintf("%v", err))
 		return

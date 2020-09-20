@@ -17,7 +17,8 @@ func main() {
 	}
 
 	router := gin.New()
-	// router.Use(gin.Logger())
+
+	router.Use(gin.Logger())
 	router.Use(cors.Default())
 
 	router.GET("/types", controllers.GetType)
